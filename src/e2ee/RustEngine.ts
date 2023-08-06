@@ -135,6 +135,16 @@ export class RustEngine {
 
     private async processKeysUploadRequest(request: KeysUploadRequest) {
         const body = JSON.parse(request.body);
+        // WORKAROUND GH-333
+        if (body) {
+            if (body.device_keys == null) {
+                delete body.device_keys;
+            }
+            if (body.one_time_keys == null || !Object.keys(body.one_time_keys).length) {
+                delete body.one_time_keys;
+            }
+        }
+        // END OF WORKAROUND
         // delete body["one_time_keys"]; // use this to test MSC3983
         const resp = await this.client.doRequest("POST", "/_matrix/client/v3/keys/upload", null, body);
         await this.machine.markRequestAsSent(request.id, request.type, JSON.stringify(resp));
